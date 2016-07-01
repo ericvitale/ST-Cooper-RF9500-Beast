@@ -133,38 +133,6 @@ def parse(String description) {
     }
 }
 
-def on() {
-    sendEvent(name: "switch", value: "on")
-}
-
-def off() {
-    sendEvent(name: "switch", value: "off")
-}
-
-def levelup() {
-	//log.debug "in level up"
-
-	def curlevel = device.currentValue('level') as Integer 
-    log.debug "Device Handler: cur level = $curlevel"
-	if (curlevel <= 95)
-    	setLevel(curlevel + 5);     
-}
-
-def leveldown() {
-	//log.debug "in level down"
-
-	def curlevel = device.currentValue('level') as Integer 
-    log.debug "Device Handler: cur level = $curlevel"
-	if (curlevel > 5)
-    	setLevel(curlevel - 5)    
-}
-
-def setLevel(value) {
-	log.trace "Device Handler: setLevel($value)"
-	sendEvent(name: "level", value: value)
-    sendEvent(name:"switch.setLevel",value:value)
-}
-
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
 	log.debug "CRF9500 DH WakeUpNotification"
 }
@@ -175,43 +143,6 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelS
     log.debug "CRF9500 DH --- cmd = ${cmd}"
 }
 
-// The controller likes to repeat the command... ignore repeats
-def checkbuttonEvent(buttonid){
-
-	if (state.lastScene == buttonid && (state.repeatCount < 4) && (now() - state.repeatStart < 2000)) {
-    	log.debug "Device Handler: Button ${buttonid} repeat ${state.repeatCount}x ${now()}"
-        state.repeatCount = state.repeatCount + 1
-        createEvent([:])
-    }
-    else {
-    	// If the button was really pressed, store the new scene and handle the button press
-        state.lastScene = buttonid
-        state.lastLevel = 0
-        state.repeatCount = 0
-        state.repeatStart = now()
-
-        buttonEvent(buttonid)
-    }
-}
-
-// Handle a button being pressed
-def buttonEvent(button) {
-	button = button as Integer
-    log.trace "Device Handler 1: Button $button pressed"
-    def result = []
-	if (button == 1) {
-    	def mystate = device.currentValue('switch');
-        if (mystate == "on") 
-            off()
-        else
-            on()   
-    }
-    updateState("currentButton", "$button")   
-        // update the device state, recording the button press
-        result << createEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-    result
-}
-
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicGet cmd) {
     log.debug "CRF9500 DH BasicGet"
 }
@@ -219,37 +150,13 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicGet cmd) {
 //This method get called when button 1 is pressed first, then BasicGet gets called.
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
 	log.debug "CRF9500 DH BasicSet"
-    buttonPressed()
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStopLevelChange cmd) {
 	log.debug "CRF9500 DH SwitchMultilevelStopLevelChange"
-//	createEvent([:])
 }
 
 
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
 	log.debug "CRF9500 DH Command"
-//	[ descriptionText: "$cmd"]
-}
-
-// Update State
-def updateState(String name, String value) {
-	state[name] = value
-	device.updateDataValue(name, value)
-}
-
-//This method is called by the zwaveEvent handler if button 1 is press
-def buttonPressed() {
-	log.debug "CRF9500 -- buttonPressed() -- Button 1 Pressed!"
-    turnSwitchOn()
-}
-
-def turnSwitchOn() {
-	//log.debug "CRF9500 -- turnSwitchOn() -- Turning Switch On."
-    //sendEvent(name: "switch", value: "on")
-    //log.debug "CRF9500 -- switch (on) event raised."
-    //sendEvent(name: "switchLevel", value: 100)
-    //log.debug "CRF9500 -- switchLevel (100) event raised."
-    
 }
