@@ -40,7 +40,7 @@ metadata {
 		controlTile("levelSliderControl", "state.level", "slider", height: 1, width: 3, inactiveLabel: false) {
 			state "level", action:"switch level.setLevel"
 		}
-        valueTile("level", "state.level", inactiveLabel: false, decoration: "flat") {
+        valueTile("device", "state.level", inactiveLabel: false, decoration: "flat") {
 			state "level", label:'${currentValue} %', unit:"%", backgroundColor:"#ffffff"
 		}
 		main "switch"
@@ -53,8 +53,7 @@ metadata {
 // Down: CRF9500 -- parse -- description = zw device: 2E, command: 2604, payload: 60 01 04
 
 def parse(String description) {
-	//log.debug "CRF9500 -- parse -- description = ${description}"
-    
+
     def attrName = null
     def attrValue = null
     def ignore = false
@@ -92,8 +91,7 @@ def parse(String description) {
         }
     } else if(description?.trim()?.endsWith("payload: 20 01 04")) {
     	log.debug "CRF9500 -- parse -- Dim Level Raised."
-        //attrName = "switch.setLevel"
-        //attrValue = "100"
+        
         try {
         	if(state.level <= 90) {
 				state.level = state.level + 10
@@ -137,9 +135,36 @@ def parse(String description) {
 
 	if(!ignore) {
 		def result = createEvent(name: attrName, value: attrValue)
-    	log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
+        try {
+    		log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
+        } catch(e) {
+       		log.debug "CRF9500 -- parse -- Exception ${e}"
+        }
 		return result
     }
+}
+
+//External methos to set the level of the dimmer. Called by SmartApp.
+def setLevel(value) {
+	if((value <= 100 || value >= 0) && value.isNumber()) {
+		log.debug "CRF9500 -- setLevel(${value})"
+    	state.level = value
+    	sendEvent(name: "switch.setLevel", value: value)
+    }
+}
+
+//External methos to turn this dimmer / switch on. Called by SmartApp.
+def on() {
+	log.debug "CRF9500 -- on()"
+    state.switch = "on"
+    sendEvent(name: "switch", value: "on")
+}
+
+//External methos to turn this dimmer / switch off. Called by SmartApp.
+def off() {
+	log.debug "CRF9500 -- off()"
+    state.switch = "off"
+    sendEvent(name: "switch", value: "off")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
