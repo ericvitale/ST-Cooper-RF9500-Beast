@@ -21,7 +21,7 @@
  */
 
 metadata {
-	definition (name: "Cooper RF9500 Beast", namespace: "ericvitale", author: "ericvitale@gmail.com") {
+     definition (name: "Cooper RF9500 Beast", namespace: "ericvitale", author: "ericvitale@gmail.com") {
 		capability "Switch"
 		capability "Switch Level"
 		capability "Button"
@@ -31,7 +31,7 @@ metadata {
     preferences {
     	input "constrain", "bool", title: "Enforce Dimmer Contraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
     }
-
+    
 	tiles {
     	standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
         	state "on", label: "on", icon: "st.Lighting.light13.on", backgroundColor: "#79b821", action: "off"
