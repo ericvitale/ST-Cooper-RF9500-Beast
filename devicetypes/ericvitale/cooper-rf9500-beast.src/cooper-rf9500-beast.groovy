@@ -27,24 +27,28 @@ metadata {
 		capability "Button"
         capability "Actuator"
 	}
+    
+    preferences {
+    	input "constrain", "bool", title: "Enforce Dimmer Contraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
+    }
 
-	//User Interface
 	tiles {
-		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
-			state "off", label: '${name}', action: "switch.on", icon: "st.Home.home30", backgroundColor: "#ffffff"
-			state "on", label: '${name}', action: "switch.off", icon: "st.Home.home30", backgroundColor: "#79b821"
-		}
-		standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
+    	standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
+        	state "on", label: "on", icon: "st.Lighting.light13.on", backgroundColor: "#79b821", action: "off"
+            state "off", label: "off", icon: "st.Lighting.light13.off", backgroundColor: "#ffffff", action: "on"
+        }
+        
+        valueTile("Brightness", "device.level", width: 1, height: 1) {
+        	state "level", label: '${currentValue}%'
+        }
+        
+        controlTile("levelSliderControl", "device.level", "slider", width: 3, height: 1) {
+        	state "level", action:"level.setLevel"
+        }
+        
+        standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		controlTile("levelSliderControl", "state.level", "slider", height: 1, width: 3, inactiveLabel: false) {
-			state "level", action:"switch level.setLevel"
-		}
-        valueTile("device", "state.level", inactiveLabel: false, decoration: "flat") {
-			state "level", label:'${currentValue} %', unit:"%", backgroundColor:"#ffffff"
-		}
-		main "switch"
-		details(["switch", "refresh", "level", "levelSliderControl"])
 	}
 }
 
@@ -57,6 +61,7 @@ def parse(String description) {
     def attrName = null
     def attrValue = null
     def ignore = false
+    def onOffChange = false
     
     try {
     	if(state.level == null) {
@@ -67,7 +72,12 @@ def parse(String description) {
 		state.level = 100
     }
     
-    if(description?.trim()?.endsWith("payload: FF")) {
+    log.debug "description === ${description}"
+    
+    /*My devices each sent a different on/off payload 00 & FF. 00 sounds like off and FF sounds like on, but I can't tell what
+      the deal was so I made both work. */
+    
+    if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00")) { // On / Off Toggle
     	log.debug "CRF9500 -- parse -- Button Pressed"
         
         try {
@@ -89,13 +99,17 @@ def parse(String description) {
             state.switch = "off"
             attrValue = state.switch
         }
-    } else if(description?.trim()?.endsWith("payload: 20 01 04")) {
+        onOffChange = true
+        
+    } else if(description?.trim()?.endsWith("payload: 20 01 04")) { // Raise Level
     	log.debug "CRF9500 -- parse -- Dim Level Raised."
         
         try {
-        	if(state.level <= 90) {
+        	if(state.level <= 90 && constrain) {
 				state.level = state.level + 10
-            }    
+            } else {
+            	state.level = state.level + 10
+            }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
 			state.level = 100
@@ -108,14 +122,17 @@ def parse(String description) {
             state.level = 100
             attrValue = state.level
        	}
-    } else if(description?.trim()?.endsWith("payload: 60 01 04")) {
+        
+    } else if(description?.trim()?.endsWith("payload: 60 01 04")) { // Lower Level
     	log.debug "CRF9500 -- parse -- Dim Level Lowered."
         log.debug "CRF9500 -- parse -- device.currentValue(level) = ${state.level}."
         
         try {
-        	if(state.level >= 10) {
+        	if(state.level >= 10 && constrain) {
 				state.level = state.level - 10
-            }    
+            } else {
+            	state.level = state.level - 10
+            }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
 			state.level = 0
@@ -128,6 +145,7 @@ def parse(String description) {
             state.level = 0
             attrValue = state.level
        	}
+        
     } else {
     	//log.debug "CRF9500 -- discarded event -- description = ${description}"
         ignore = true
@@ -140,6 +158,22 @@ def parse(String description) {
         } catch(e) {
        		log.debug "CRF9500 -- parse -- Exception ${e}"
         }
+        
+        //Doing this updates the UI for the level & on/off
+        if(onOffChange == true) {
+        	attrName = "switch"
+        } else {
+        	attrName = "level"
+        }
+        
+        result = createEvent(name: attrName, value: attrValue)
+
+		try {
+    		log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
+        } catch(e) {
+       		log.debug "CRF9500 -- parse -- Exception ${e}"
+        }
+        
 		return result
     }
 }
