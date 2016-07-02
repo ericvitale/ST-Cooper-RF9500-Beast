@@ -26,22 +26,9 @@ metadata {
 		capability "Switch Level"
 		capability "Button"
         capability "Actuator"
-
-		//fingerprint deviceId: "0x1200", inClusters: "0x77 0x86 0x75 0x73 0x85 0x72 0xEF", outClusters: "0x26"
 	}
 
-	// simulator metadata
-	simulator {
-		// status messages
-		status "on": "on/off: 1"
-		status "off": "on/off: 0"
-
-		// reply messages
-		reply "zcl on-off on": "on/off: 1"
-		reply "zcl on-off off": "on/off: 0"
-	}
-
-	// UI tile definitions
+	//User Interface
 	tiles {
 		standardTile("switch", "device.switch", width: 2, height: 2, canChangeIcon: true) {
 			state "off", label: '${name}', action: "switch.on", icon: "st.Home.home30", backgroundColor: "#ffffff"
@@ -50,10 +37,10 @@ metadata {
 		standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat") {
 			state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
 		}
-		controlTile("levelSliderControl", "device.level", "slider", height: 1, width: 3, inactiveLabel: false) {
+		controlTile("levelSliderControl", "state.level", "slider", height: 1, width: 3, inactiveLabel: false) {
 			state "level", action:"switch level.setLevel"
 		}
-        valueTile("level", "device.level", inactiveLabel: false, decoration: "flat") {
+        valueTile("level", "state.level", inactiveLabel: false, decoration: "flat") {
 			state "level", label:'${currentValue} %', unit:"%", backgroundColor:"#ffffff"
 		}
 		main "switch"
