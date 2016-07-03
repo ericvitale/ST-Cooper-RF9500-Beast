@@ -29,7 +29,7 @@ metadata {
 	}
     
     preferences {
-    	input "constrain", "bool", title: "Enforce Dimmer Contraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
+    	input "constrain", "bool", title: "Enforce Dimmer Constraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
     }
     
 	tiles {
