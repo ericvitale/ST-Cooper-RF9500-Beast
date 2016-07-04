@@ -53,6 +53,8 @@ metadata {
 }
 
 // Pressed: CRF9500 -- parse -- description = zw device: 2E, command: 2001, payload: FF
+//   OR
+// Pressed: CRF9500 -- parse -- description = zw device: 2E, command: 2001, payload: FF
 // Up: CRF9500 -- parse -- description = zw device: 2E, command: 2604, payload: 20 01 04
 // Down: CRF9500 -- parse -- description = zw device: 2E, command: 2604, payload: 60 01 04
 
@@ -73,9 +75,6 @@ def parse(String description) {
     }
     
     log.debug "description === ${description}"
-    
-    /*My devices each sent a different on/off payload 00 & FF. 00 sounds like off and FF sounds like on, but I can't tell what
-      the deal was so I made both work. */
     
     if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00")) { // On / Off Toggle
     	log.debug "CRF9500 -- parse -- Button Pressed"
