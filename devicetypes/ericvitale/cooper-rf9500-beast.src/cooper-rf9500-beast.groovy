@@ -70,14 +70,14 @@ def parse(String description) {
         	state.level = 100
       	}
     } catch(e) {
-    	log.debug "Failed to get currentValue('level')"
+        log.debug "Failed to get the current dim level."
 		state.level = 100
     }
     
     log.debug "description === ${description}"
     
     if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00")) { // On / Off Toggle
-    	log.debug "CRF9500 -- parse -- Button Pressed"
+        log.debug "CRF9500 -- parse -- Button Pressed"
         
         try {
         	if(state.switch == "on") {
