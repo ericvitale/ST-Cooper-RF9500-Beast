@@ -29,7 +29,7 @@ SmartThings Device Handler for the Cooper RF9500 Battery Operated Switch. This d
 1. Open SmartThings IDE in your web browser and log into your account.
 2. Click on the "My Device Types" section in the navigation bar.
 3. On your Device Types page, click on the "+ New Device Type" button on the right.
-4 . On the "New Device Type" page, Select the Tab "From Code" , Copy the "cooper-rf9500-beast.groovy" source code from GitHub and paste it into the IDE editor window.
+4 . On the "New Device Type" page, Select the Tab "From Code" , Copy the "cooper-rf9500-beast.groovy" source code from GitHub and paste it into the IDE editor window. (https://github.com/ericvitale/ST-Cooper-RF9500-Beast/blob/master/devicetypes/ericvitale/cooper-rf9500-beast.src/cooper-rf9500-beast.groovy)
 5. Click the blue "Create" button at the bottom of the page. An IDE editor window containing device handler template should now open.
 6. Click the blue "Save" button above the editor window.
 7. Click the "Publish" button next to it and select "For Me". You have now self-published your Device Handler.
