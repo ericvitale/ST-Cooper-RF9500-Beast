@@ -36,4 +36,4 @@ SmartThings Device Handler for the Cooper RF9500 Battery Operated Switch. This d
 8. See the "Preferences" & "How to get your API Token" sections below on how to configure.
 
 ## Preferences
-None at this time.
+1. Enforce Dimming Constraints - Allow your dimmer to go above 100 and below 0 so you don't have to worry about keeping multiple dimmers in sync.
