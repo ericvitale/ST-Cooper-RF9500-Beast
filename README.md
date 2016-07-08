@@ -1,4 +1,4 @@
-# ST-CooperRF9500Beast
+# ST-Cooper-RF9500-Beast
 SmartThings Device Handler for the Cooper RF9500 Battery Operated Switch. This device handler is not initially intended to be use on a regular basis from the SmartThings app as when using the app you should be using the lightbulb or group of light bulb device to control the light. This is intended to make the physical RF battery operated switch work.
 
 ## Details
@@ -18,9 +18,9 @@ SmartThings Device Handler for the Cooper RF9500 Battery Operated Switch. This d
 3. Click on "Settings".
 4. Click "Add New Repository".
 5. Enter "ericvitale" as the namespace.
-6. Enter "ST-CooperRF9500Beast" as the repository.
+6. Enter "ST-Cooper-RF9500-Beast" as the repository.
 7. Hit "Save".
-8. Select "Update from Repo" and select "ST-CooperRF9500Beast".
+8. Select "Update from Repo" and select "ST-Cooper-RF9500-Beast".
 9. Select "cooper-rf9500-beast.groovy".
 10. Check "Publish" and hit "Execute".
 11. See the "Preferences" & "How to get your API Token" sections below on how to configure.
