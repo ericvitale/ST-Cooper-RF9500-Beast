@@ -104,10 +104,8 @@ def parse(String description) {
     	log.debug "CRF9500 -- parse -- Dim Level Raised."
         
         try {
-        	if(state.level <= 90 && constrain) {
+        	if(state.level <= 90 || ! constrain) {
 				state.level = state.level + 10
-            } else {
-            	state.level = state.level + 10
             }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
@@ -127,10 +125,8 @@ def parse(String description) {
         log.debug "CRF9500 -- parse -- device.currentValue(level) = ${state.level}."
         
         try {
-        	if(state.level >= 10 && constrain) {
+        	if(state.level >= 10 || ! constrain) {
 				state.level = state.level - 10
-            } else {
-            	state.level = state.level - 10
             }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
