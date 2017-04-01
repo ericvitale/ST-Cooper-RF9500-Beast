@@ -76,7 +76,7 @@ def parse(String description) {
     
     log.debug "description === ${description}"
     
-    if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00")) { // On / Off Toggle
+    if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00") || description?.trim()?.endsWith("payload: 01")) { // On / Off Toggle
         log.debug "CRF9500 -- parse -- Button Pressed"
         
         try {
@@ -100,12 +100,14 @@ def parse(String description) {
         }
         onOffChange = true
         
-    } else if(description?.trim()?.endsWith("payload: 20 01 04")) { // Raise Level
+    } else if(description?.trim()?.endsWith("payload: 20 01 04") || description?.trim()?.endsWith("payload: 20 01")) { // Raise Level
     	log.debug "CRF9500 -- parse -- Dim Level Raised."
         
         try {
-        	if(state.level <= 90 || ! constrain) {
+        	if(state.level <= 90 && constrain) {
 				state.level = state.level + 10
+            } else {
+            	state.level = state.level + 10
             }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
@@ -120,13 +122,15 @@ def parse(String description) {
             attrValue = state.level
        	}
         
-    } else if(description?.trim()?.endsWith("payload: 60 01 04")) { // Lower Level
+    } else if(description?.trim()?.endsWith("payload: 60 01 04") || description?.trim()?.endsWith("payload: 60 01")) { // Lower Level
     	log.debug "CRF9500 -- parse -- Dim Level Lowered."
         log.debug "CRF9500 -- parse -- device.currentValue(level) = ${state.level}."
         
         try {
-        	if(state.level >= 10 || ! constrain) {
+        	if(state.level >= 10 && constrain) {
 				state.level = state.level - 10
+            } else {
+            	state.level = state.level - 10
             }
         } catch(e) {
         	log.debug "CRF9500 -- parse -- Exception = ${e}"
@@ -175,7 +179,7 @@ def parse(String description) {
 
 //External methos to set the level of the dimmer. Called by SmartApp.
 def setLevel(value) {
-	if((value <= 100 || value >= 0) && value.isNumber()) {
+	if((value <= 100 && value >= 0) && value.isNumber()) {
 		log.debug "CRF9500 -- setLevel(${value})"
     	state.level = value
     	sendEvent(name: "switch.setLevel", value: value)
