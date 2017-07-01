@@ -191,6 +191,7 @@ def on() {
 	log.debug "CRF9500 -- on()"
     state.switch = "on"
     sendEvent(name: "switch", value: "on")
+    //sendEvent(name: "button", value: "pushed")
 }
 
 //External methos to turn this dimmer / switch off. Called by SmartApp.
