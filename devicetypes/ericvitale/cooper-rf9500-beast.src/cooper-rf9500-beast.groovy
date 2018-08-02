@@ -10,6 +10,8 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  * 
+ *  08/02/2018 - 1.02 - Fix for double press issue.
+ *
  *  This device handler was written specifically for the Cooper RF9500 (RF Battery Operated Switch).
  *  The version # of the switches I tested with is 3.11 as listed on th back of the switch.
  *  FCC ID: UH2-RF9500
@@ -64,7 +66,17 @@ def parse(String description) {
     def attrValue = null
     def ignore = false
     def onOffChange = false
-    
+
+    def theCurrentTime = new Date().time
+	
+    if(state.lastPress == null) {
+    	state.lastPress = theCurrentTime
+    } else if((theCurrentTime - state.lastPress) >= (400)) {
+        state.lastPress = theCurrentTime
+    } else {
+        return
+    }
+
     try {
     	if(state.level == null) {
         	state.level = 100
@@ -165,13 +177,13 @@ def parse(String description) {
         	attrName = "level"
         }
         
-        result = createEvent(name: attrName, value: attrValue)
+        /*result = createEvent(name: attrName, value: attrValue)
 
 		try {
     		log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
         } catch(e) {
        		log.debug "CRF9500 -- parse -- Exception ${e}"
-        }
+        }*/
         
 		return result
     }
