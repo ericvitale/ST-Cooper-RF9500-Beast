@@ -262,7 +262,7 @@ private determineLogLevel(data) {
 }
 
 def log(data, type) {
-	data = "RF9500.B${version} -- ${device.label} -- ${data ?: ''}"
+	data = "RF9500.B${version}.${device.label} >> ${data ?: ''}"
         
     if (determineLogLevel(type) >= determineLogLevel(settings?.logging ?: "INFO")) {
         switch (type?.toUpperCase()) {
@@ -282,7 +282,7 @@ def log(data, type) {
                 log.error "${data}"
                 break
             default:
-                log.error "RF9500.B -- ${device.label} -- Invalid Log Setting"
+                log.error "RF9500.B${version}.${device.label} >> Invalid Log Setting"
         }
     }
 }
