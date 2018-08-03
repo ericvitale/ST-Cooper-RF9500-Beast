@@ -10,6 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  * 
+ *  08/02/2018 - 1.03 - Added logging for debugging.
  *  08/02/2018 - 1.02 - Fix for double press issue.
  *
  *  This device handler was written specifically for the Cooper RF9500 (RF Battery Operated Switch).
@@ -21,6 +22,10 @@
  *  You can find my other device handlers & SmartApps @ https://github.com/ericvitale
  *
  */
+
+private version() {
+	return "1.03"	
+}
 
 metadata {
      definition (name: "Cooper RF9500 Beast", namespace: "ericvitale", author: "ericvitale@gmail.com") {
@@ -257,7 +262,7 @@ private determineLogLevel(data) {
 }
 
 def log(data, type) {
-    data = "RF9500.B -- ${device.label} -- ${data ?: ''}"
+	data = "RF9500.B${version} -- ${device.label} -- ${data ?: ''}"
         
     if (determineLogLevel(type) >= determineLogLevel(settings?.logging ?: "INFO")) {
         switch (type?.toUpperCase()) {
