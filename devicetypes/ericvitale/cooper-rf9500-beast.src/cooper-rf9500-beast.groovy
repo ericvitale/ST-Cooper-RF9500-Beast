@@ -31,7 +31,11 @@ metadata {
 	}
     
     preferences {
-    	input "constrain", "bool", title: "Enforce Dimmer Constraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
+    	section("Settings") {
+        	input "constrain", "bool", title: "Enforce Dimmer Constraints?", description: "Yes if you want your dimmer to stay between 0 & 100, No if you don't. Selecting No removes the requirement to sync your dimmers.", required: true, defaultValue: true
+		input "timeBetween", "num", title: "Minimum Gap (ms)", description: "This device likes to send multiple requests for the same action, this is the time in ms between events you will accept.", required: true, defaultValue: 400
+		input "logging", "enum", title: "Log Level", required: false, defaultValue: "DEBUG", options: ["TRACE", "DEBUG", "INFO", "WARN", "ERROR"]
+	}
     }
     
 	tiles {
@@ -71,7 +75,7 @@ def parse(String description) {
 	
     if(state.lastPress == null) {
     	state.lastPress = theCurrentTime
-    } else if((theCurrentTime - state.lastPress) >= (400)) {
+    } else if((theCurrentTime - state.lastPress) >= getGap()) {
         state.lastPress = theCurrentTime
     } else {
         return
@@ -82,14 +86,14 @@ def parse(String description) {
         	state.level = 100
       	}
     } catch(e) {
-        log.debug "Failed to get the current dim level."
+        log("Failed to get the current dim level.", "ERROR")
 		state.level = 100
     }
     
-    log.debug "description === ${description}"
+    log("description === ${description}", "DEBUG")
     
     if(description?.trim()?.endsWith("payload: FF") || description?.trim()?.endsWith("payload: 00") || description?.trim()?.endsWith("payload: 01")) { // On / Off Toggle
-        log.debug "CRF9500 -- parse -- Button Pressed"
+        log("CRF9500 -- parse -- Button Pressed", "DEBUG")
         
         try {
         	if(state.switch == "on") {
@@ -106,14 +110,14 @@ def parse(String description) {
         try {
 	        attrValue = state.switch
         } catch(e) {
-        	log.debug "CRF9500 -- parse -- Exception = ${e}"
+        	log("CRF9500 -- parse -- Exception = ${e}", "ERROR")
             state.switch = "off"
             attrValue = state.switch
         }
         onOffChange = true
         
     } else if(description?.trim()?.endsWith("payload: 20 01 04") || description?.trim()?.endsWith("payload: 20 01")) { // Raise Level
-    	log.debug "CRF9500 -- parse -- Dim Level Raised."
+    	log("CRF9500 -- parse -- Dim Level Raised.", "DEBUG")
         
         try {
         	if(state.level <= 90 && constrain) {
@@ -122,21 +126,21 @@ def parse(String description) {
             	state.level = state.level + 10
             }
         } catch(e) {
-        	log.debug "CRF9500 -- parse -- Exception = ${e}"
+        	log("CRF9500 -- parse -- Exception = ${e}", "ERROR")
 			state.level = 100
         }
         attrName = "switch.setLevel"
         try {
 	        attrValue = state.level
         } catch(e) {
-        	log.debug "CRF9500 -- parse -- Exception = ${e}"
+        	log("CRF9500 -- parse -- Exception = ${e}", "ERROR")
             state.level = 100
             attrValue = state.level
        	}
         
     } else if(description?.trim()?.endsWith("payload: 60 01 04") || description?.trim()?.endsWith("payload: 60 01")) { // Lower Level
-    	log.debug "CRF9500 -- parse -- Dim Level Lowered."
-        log.debug "CRF9500 -- parse -- device.currentValue(level) = ${state.level}."
+    	log("parse -- Dim Level Lowered.", "DEBUG")
+        log("parse -- device.currentValue(level) = ${state.level}.", "DEBUG")
         
         try {
         	if(state.level >= 10 && constrain) {
@@ -145,29 +149,28 @@ def parse(String description) {
             	state.level = state.level - 10
             }
         } catch(e) {
-        	log.debug "CRF9500 -- parse -- Exception = ${e}"
+        	log("parse -- Exception = ${e}", "ERROR")
 			state.level = 0
         }
         attrName = "switch.setLevel"
         try {
 	        attrValue = state.level
         } catch(e) {
-        	log.debug "CRF9500 -- parse -- Exception = ${e}"
+        	log("parse -- Exception = ${e}", "ERROR")
             state.level = 0
             attrValue = state.level
        	}
         
     } else {
-    	//log.debug "CRF9500 -- discarded event -- description = ${description}"
         ignore = true
     }
 
 	if(!ignore) {
 		def result = createEvent(name: attrName, value: attrValue)
         try {
-    		log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
+    		log("parse -- returned ${result?.descriptionText}.", "DEBUG")
         } catch(e) {
-       		log.debug "CRF9500 -- parse -- Exception ${e}"
+       		log("CRF9500 -- parse -- Exception ${e}", "ERROR")
         }
         
         //Doing this updates the UI for the level & on/off
@@ -175,16 +178,7 @@ def parse(String description) {
         	attrName = "switch"
         } else {
         	attrName = "level"
-        }
-        
-        /*result = createEvent(name: attrName, value: attrValue)
-
-		try {
-    		log.debug "CRF9500 -- parse -- returned ${result?.descriptionText}."
-        } catch(e) {
-       		log.debug "CRF9500 -- parse -- Exception ${e}"
-        }*/
-        
+        }        
 		return result
     }
 }
@@ -192,7 +186,7 @@ def parse(String description) {
 //External methos to set the level of the dimmer. Called by SmartApp.
 def setLevel(value) {
 	if((value <= 100 && value >= 0) && value.isNumber()) {
-		log.debug "CRF9500 -- setLevel(${value})"
+		log("setLevel(${value})", "DEBUG")
     	state.level = value
     	sendEvent(name: "switch.setLevel", value: value)
     }
@@ -200,43 +194,90 @@ def setLevel(value) {
 
 //External methos to turn this dimmer / switch on. Called by SmartApp.
 def on() {
-	log.debug "CRF9500 -- on()"
+	log("on()", "DEBUG")
     state.switch = "on"
     sendEvent(name: "switch", value: "on")
-    //sendEvent(name: "button", value: "pushed")
 }
 
 //External methos to turn this dimmer / switch off. Called by SmartApp.
 def off() {
-	log.debug "CRF9500 -- off()"
+	log("off()", "DEBUG")
     state.switch = "off"
     sendEvent(name: "switch", value: "off")
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
-	log.debug "CRF9500 DH WakeUpNotification"
 }
 
 // A zwave command for a button press was received convert to button number
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStartLevelChange cmd) {
-	log.debug "CRF9500 DH SwitchMultilevelStartLevelChange"
-    log.debug "CRF9500 DH --- cmd = ${cmd}"
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicGet cmd) {
-    log.debug "CRF9500 DH BasicGet"
 }
 
 //This method get called when button 1 is pressed first, then BasicGet gets called.
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicSet cmd) {
-	log.debug "CRF9500 DH BasicSet"
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelStopLevelChange cmd) {
-	log.debug "CRF9500 DH SwitchMultilevelStopLevelChange"
 }
 
-
 def zwaveEvent(physicalgraph.zwave.Command cmd) {
-	log.debug "CRF9500 DH Command"
+}
+
+def getGap() {
+	if(state.timeBetween == null) {
+		return 400
+	} else {
+		return state.timeBetween	
+	}
+}	
+
+private determineLogLevel(data) {
+    switch (data?.toUpperCase()) {
+        case "TRACE":
+            return 0
+            break
+        case "DEBUG":
+            return 1
+            break
+        case "INFO":
+            return 2
+            break
+        case "WARN":
+            return 3
+            break
+        case "ERROR":
+        	return 4
+            break
+        default:
+            return 1
+    }
+}
+
+def log(data, type) {
+    data = "RF9500.B -- ${device.label} -- ${data ?: ''}"
+        
+    if (determineLogLevel(type) >= determineLogLevel(settings?.logging ?: "INFO")) {
+        switch (type?.toUpperCase()) {
+            case "TRACE":
+                log.trace "${data}"
+                break
+            case "DEBUG":
+                log.debug "${data}"
+                break
+            case "INFO":
+                log.info "${data}"
+                break
+            case "WARN":
+                log.warn "${data}"
+                break
+            case "ERROR":
+                log.error "${data}"
+                break
+            default:
+                log.error "RF9500.B -- ${device.label} -- Invalid Log Setting"
+        }
+    }
 }
